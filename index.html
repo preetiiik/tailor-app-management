@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tailor Management</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">M</div>
+        <div>
+          <div class="brand-name">Tailor App</div>
+          <div class="brand-sub">Tailor Management</div>
+        </div>
+      </div>
+      <button class="primary new-order" data-action="new-order">+ New Order</button>
+      <nav id="nav">
+        <button class="nav-item active" data-view="dashboard"><span>⌂</span> Dashboard</button>
+        <button class="nav-item" data-view="orders"><span>▣</span> Orders <span class="badge" id="ordersBadge">8</span></button>
+        <button class="nav-item" data-view="customers"><span>♙</span> Customers</button>
+        <button class="nav-item" data-view="measurements"><span>↔</span> Measurements</button>
+        <button class="nav-item" data-view="production"><span>◫</span> Production</button>
+        <button class="nav-item" data-view="products"><span>◇</span> Products & Styles</button>
+        <button class="nav-item" data-view="staff"><span>♟</span> Staff</button>
+        <button class="nav-item" data-view="reports"><span>▥</span> Reports</button>
+        <button class="nav-item" data-view="settings"><span>⚙</span> Settings</button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="avatar">AS</div>
+        <div>
+          <strong>Ajay</strong>
+          <small>Administrator</small>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageSubtitle">Overview of today's tailoring operations</p>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" title="Notifications" aria-label="Notifications" data-action="notifications">🔔<span class="dot"></span></button>
+          <button class="outline" data-action="new-order">+ New Order</button>
+        </div>
+      </header>
+      <section id="content"></section>
+    </main>
+  </div>
+
+  <div id="modalRoot"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+  <script src="interactions.js"></script>
+</body>
+</html>
