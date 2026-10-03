@@ -3,7 +3,7 @@
 // SAME ORIGINAL UI + BACKEND / POSTGRESQL
 // ============================================================
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://tailor-app-management.onrender.com";
 
 
 // ============================================================
