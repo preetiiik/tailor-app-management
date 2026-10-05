@@ -1056,6 +1056,227 @@ app.put("/api/settings", async (req, res) => {
 });
 
 
+
+// =====================================================
+// MASTER CONFIG
+// =====================================================
+
+
+// Get all master config values
+app.get("/api/master-config", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT *
+       FROM master_config
+       ORDER BY config_type, display_order, id`
+    );
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error fetching master config",
+      error: error.message
+    });
+  }
+});
+
+
+// Get master config by type
+app.get("/api/master-config/:type", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT *
+       FROM master_config
+       WHERE config_type = $1
+       AND active = TRUE
+       ORDER BY display_order, id`,
+      [req.params.type]
+    );
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error fetching master config",
+      error: error.message
+    });
+  }
+});
+
+
+// Add master config value
+app.post("/api/master-config", async (req, res) => {
+  try {
+    const {
+      config_type,
+      config_key,
+      config_value,
+      display_order,
+      active
+    } = req.body;
+
+    if (!config_type || !config_key || !config_value) {
+      return res.status(400).json({
+        message:
+          "Config type, key and value are required"
+      });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO master_config
+      (
+        config_type,
+        config_key,
+        config_value,
+        display_order,
+        active
+      )
+      VALUES ($1,$2,$3,$4,$5)
+      RETURNING *`,
+      [
+        config_type.trim(),
+        config_key.trim().toLowerCase(),
+        config_value.trim(),
+        Number(display_order || 0),
+        active !== false
+      ]
+    );
+
+    res.status(201).json({
+      message: "Master config added successfully",
+      config: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "23505") {
+      return res.status(409).json({
+        message:
+          "This master config already exists"
+      });
+    }
+
+    res.status(500).json({
+      message: "Error adding master config",
+      error: error.message
+    });
+  }
+});
+
+
+// Edit master config value
+app.put("/api/master-config/:id", async (req, res) => {
+  try {
+    const {
+      config_type,
+      config_key,
+      config_value,
+      display_order,
+      active
+    } = req.body;
+
+    const result = await pool.query(
+      `UPDATE master_config
+       SET
+         config_type = $1,
+         config_key = $2,
+         config_value = $3,
+         display_order = $4,
+         active = $5,
+         updated_at = CURRENT_TIMESTAMP
+       WHERE id = $6
+       RETURNING *`,
+      [
+        config_type,
+        config_key,
+        config_value,
+        Number(display_order || 0),
+        active !== false,
+        req.params.id
+      ]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({
+        message: "Master config not found"
+      });
+    }
+
+    res.json({
+      message: "Master config updated successfully",
+      config: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "23505") {
+      return res.status(409).json({
+        message:
+          "This master config already exists"
+      });
+    }
+
+    res.status(500).json({
+      message: "Error updating master config",
+      error: error.message
+    });
+  }
+});
+
+
+// Enable / disable master config value
+app.patch(
+  "/api/master-config/:id/status",
+  async (req, res) => {
+    try {
+      const { active } = req.body;
+
+      const result = await pool.query(
+        `UPDATE master_config
+         SET
+           active = $1,
+           updated_at = CURRENT_TIMESTAMP
+         WHERE id = $2
+         RETURNING *`,
+        [
+          Boolean(active),
+          req.params.id
+        ]
+      );
+
+      if (!result.rows.length) {
+        return res.status(404).json({
+          message: "Master config not found"
+        });
+      }
+
+      res.json({
+        message:
+          "Master config status updated successfully",
+        config: result.rows[0]
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        message:
+          "Error updating master config status",
+        error: error.message
+      });
+    }
+  }
+);
+
+
+
 // =====================================================
 // CREATE ORDER
 // =====================================================
