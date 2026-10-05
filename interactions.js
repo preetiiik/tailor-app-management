@@ -2938,12 +2938,6 @@ payments = () => {
             <tr data-record>
 
               <td>
-                #${escapeHTML(
-                  payment.id
-                )}
-              </td>
-
-              <td>
                 <strong>
                   ${escapeHTML(
                     payment.order_number
@@ -2960,40 +2954,38 @@ payments = () => {
               <td>
                 ${money(
                   Number(
-                    payment.amount || 0
+                    payment.total_amount || 0
                   )
-                )}
-              </td>
-
-              <td>
-                ${escapeHTML(
-                  payment.payment_method ||
-                  "—"
-                )}
-              </td>
-
-              <td>
-                ${escapeHTML(
-                  String(
-                    payment.payment_date ||
-                    ""
-                  ).slice(0, 10)
-                )}
-              </td>
-
-              <td>
-                ${escapeHTML(
-                  payment.note ||
-                  "—"
                 )}
               </td>
 
               <td>
                 ${money(
                   Number(
-                    payment.balance_amount ||
-                    0
+                    payment.advance_amount || 0
                   )
+                )}
+              </td>
+
+              <td>
+                ${money(
+                  Number(
+                    payment.balance_amount || 0
+                  )
+                )}
+              </td>
+
+              <td>
+                ${escapeHTML(
+                  payment.payment_method || "—"
+                )}
+              </td>
+
+              <td>
+                ${escapeHTML(
+                  String(
+                    payment.payment_date || ""
+                  ).slice(0, 10)
                 )}
               </td>
 
@@ -3009,10 +3001,6 @@ payments = () => {
           `
         )
       )}
-
-    </div>
-  `;
-};
 
 // ============================================================
 // SETTINGS UI - SAME AS BEFORE
