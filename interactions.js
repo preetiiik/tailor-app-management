@@ -2778,7 +2778,6 @@ function masterConfigDialog(id = "") {
   );
 }
 
-
 // ============================================================
 // PAYMENTS
 // ============================================================
@@ -2804,26 +2803,7 @@ payments = () => {
         payment =>
           String(
             payment.payment_date || ""
-          ).slice(0, 10) ===
-          today
-      )
-      .reduce(
-        (sum, payment) =>
-          sum +
-          Number(
-            payment.amount || 0
-          ),
-        0
-      );
-
-  const cashReceived =
-    state.payments
-      .filter(
-        payment =>
-          String(
-            payment.payment_method
-          ).toLowerCase() ===
-          "cash"
+          ).slice(0, 10) === today
       )
       .reduce(
         (sum, payment) =>
@@ -2839,9 +2819,25 @@ payments = () => {
       .filter(
         payment =>
           String(
-            payment.payment_method
-          ).toLowerCase() ===
-          "upi"
+            payment.payment_method || ""
+          ).toLowerCase() === "upi"
+      )
+      .reduce(
+        (sum, payment) =>
+          sum +
+          Number(
+            payment.amount || 0
+          ),
+        0
+      );
+
+  const cashReceived =
+    state.payments
+      .filter(
+        payment =>
+          String(
+            payment.payment_method || ""
+          ).toLowerCase() === "cash"
       )
       .reduce(
         (sum, payment) =>
@@ -3001,6 +2997,245 @@ payments = () => {
           `
         )
       )}
+
+    </div>
+  `;
+};
+
+// // ============================================================
+// // PAYMENTS
+// // ============================================================
+
+// payments = () => {
+
+//   const totalReceived =
+//     state.payments.reduce(
+//       (sum, payment) =>
+//         sum +
+//         Number(
+//           payment.amount || 0
+//         ),
+//       0
+//     );
+
+//   const today =
+//     todayISO();
+
+//   const todayReceived =
+//     state.payments
+//       .filter(
+//         payment =>
+//           String(
+//             payment.payment_date || ""
+//           ).slice(0, 10) ===
+//           today
+//       )
+//       .reduce(
+//         (sum, payment) =>
+//           sum +
+//           Number(
+//             payment.amount || 0
+//           ),
+//         0
+//       );
+
+//   const cashReceived =
+//     state.payments
+//       .filter(
+//         payment =>
+//           String(
+//             payment.payment_method
+//           ).toLowerCase() ===
+//           "cash"
+//       )
+//       .reduce(
+//         (sum, payment) =>
+//           sum +
+//           Number(
+//             payment.amount || 0
+//           ),
+//         0
+//       );
+
+//   const upiReceived =
+//     state.payments
+//       .filter(
+//         payment =>
+//           String(
+//             payment.payment_method
+//           ).toLowerCase() ===
+//           "upi"
+//       )
+//       .reduce(
+//         (sum, payment) =>
+//           sum +
+//           Number(
+//             payment.amount || 0
+//           ),
+//         0
+//       );
+
+//   const outstanding =
+//     state.orders.reduce(
+//       (sum, order) =>
+//         sum +
+//         Math.max(
+//           0,
+//           Number(order.total || 0) -
+//           Number(order.advance || 0)
+//         ),
+//       0
+//     );
+
+//   return `
+//     <div class="grid report-stats">
+
+//       ${
+//         [
+//           [
+//             "Total Received",
+//             money(totalReceived)
+//           ],
+//           [
+//             "Today's Collection",
+//             money(todayReceived)
+//           ],
+//           [
+//             "UPI Collection",
+//             money(upiReceived)
+//           ],
+//           [
+//             "Cash Collection",
+//             money(cashReceived)
+//           ],
+//           [
+//             "Outstanding",
+//             money(outstanding)
+//           ]
+//         ].map(
+//           item => `
+//             <div class="stat">
+
+//               <div class="label">
+//                 ${item[0]}
+//               </div>
+
+//               <div class="value">
+//                 ${item[1]}
+//               </div>
+
+//             </div>
+//           `
+//         ).join("")
+//       }
+
+//     </div>
+
+//     <div
+//       class="panel"
+//       style="margin-top:18px"
+//     >
+
+//       <div class="panel-head">
+
+//         <div class="panel-title">
+//           Payment History
+//         </div>
+
+//       </div>
+
+//       ${rowsTable(
+//         [
+//           "Order",
+//           "Customer",
+//           "Total Amount",
+//           "Advance Amount Paid",
+//           "Balance Amount",
+//           "Payment Method",
+//           "Payment Date",
+//           "Action"
+//         ],
+
+//         state.payments.map(
+//           payment => `
+//             <tr data-record>
+
+//               <td>
+//                 #${escapeHTML(
+//                   payment.id
+//                 )}
+//               </td>
+
+//               <td>
+//                 <strong>
+//                   ${escapeHTML(
+//                     payment.order_number
+//                   )}
+//                 </strong>
+//               </td>
+
+//               <td>
+//                 ${escapeHTML(
+//                   payment.customer_name
+//                 )}
+//               </td>
+
+//               <td>
+//                 ${money(
+//                   Number(
+//                     payment.amount || 0
+//                   )
+//                 )}
+//               </td>
+
+//               <td>
+//                 ${escapeHTML(
+//                   payment.payment_method ||
+//                   "—"
+//                 )}
+//               </td>
+
+//               <td>
+//                 ${escapeHTML(
+//                   String(
+//                     payment.payment_date ||
+//                     ""
+//                   ).slice(0, 10)
+//                 )}
+//               </td>
+
+//               <td>
+//                 ${escapeHTML(
+//                   payment.note ||
+//                   "—"
+//                 )}
+//               </td>
+
+//               <td>
+//                 ${money(
+//                   Number(
+//                     payment.balance_amount ||
+//                     0
+//                   )
+//                 )}
+//               </td>
+
+//               <td>
+//                 ${action(
+//                   "View Order",
+//                   "order-view",
+//                   payment.order_id
+//                 )}
+//               </td>
+
+//             </tr>
+//           `
+//         )
+//       )}
+
+//     </div>
+//   `;
+// };
 
 // ============================================================
 // SETTINGS UI - SAME AS BEFORE
