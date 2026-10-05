@@ -2101,6 +2101,52 @@ app.put("/api/orders/:id", async (req, res) => {
 });
 
 
+// Get all payments
+app.get("/api/payments", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+        pay.id,
+        pay.order_id,
+        pay.amount,
+        pay.payment_method,
+        pay.note,
+        pay.payment_date,
+
+        o.order_number,
+        o.total_amount,
+        o.advance_amount,
+        o.balance_amount,
+
+        c.id AS customer_id,
+        c.name AS customer_name,
+        c.mobile AS customer_mobile
+
+      FROM payments pay
+
+      JOIN orders o
+        ON pay.order_id = o.id
+
+      JOIN customers c
+        ON o.customer_id = c.id
+
+      ORDER BY
+        pay.payment_date DESC,
+        pay.id DESC`
+    );
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error fetching payments",
+      error: error.message
+    });
+  }
+});
+
 // =====================================================
 // PAYMENTS
 // =====================================================
