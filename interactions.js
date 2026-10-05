@@ -2923,14 +2923,13 @@ payments = () => {
 
       ${rowsTable(
         [
-          "Payment",
           "Order",
           "Customer",
-          "Amount",
-          "Method",
-          "Date",
-          "Note",
-          "Balance",
+          "Total Amount",
+          "Advance Amount Paid",
+          "Balance Amount",
+          "Payment Method",
+          "Payment Date",
           "Action"
         ],
 
