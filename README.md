@@ -1,5 +1,16 @@
 # Malani Tailor Management — Frontend Prototype
 
+## Interface
+
+The app uses a blue and cyan 3D interface with rounded panels, layered shadows,
+and responsive layouts across all screens. The sun/moon button switches between
+light and dark themes and saves the preference in this browser. `ui.js` adds
+dashboard summaries using loaded orders: advance collections, outstanding
+balances, scheduled deliveries for the last six months, and production stages.
+
+Run `node tests/ui.test.cjs` for view rendering, theme persistence, and summary
+checks, and `node tests/wizard-measurements.test.cjs` for the measurement workflow.
+
 A no-backend clickable frontend prototype for a tailoring/order management system.
 
 ## Included screens

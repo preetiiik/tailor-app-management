@@ -1552,10 +1552,30 @@ function rowsTable(
   head,
   rows
 ) {
+  // Shared column sizes keep alignment stable as records change or are filtered.
+  const configTable = head.join('|') === 'Value|Key|Status|Actions';
+  const widths = configTable ? [180, 150, 120, 150] : head.map(label => ({
+    Order: 140, Customer: 180, Items: 150, Status: 130, Staff: 150,
+    Delivery: 140, Amount: 140, Actions: 240, Action: 160,
+    Mobile: 160, City: 150, Orders: 100, Product: 220, Type: 130,
+    Price: 140, Garment: 150, Profile: 180, Updated: 150,
+    'Total Amount': 160, 'Advance Amount Paid': 180,
+    'Balance Amount': 160, 'Payment Method': 170, 'Payment Date': 150
+  }[label] || 160));
+  const totalWidth = widths.reduce((sum, width) => sum + width, 0);
+  const labeledRows = rows.map(row => {
+    let column = 0;
+    return row.replace(/<td\b([^>]*)>/g, (cell, attributes) => {
+      const label = head[column++];
+      return label === undefined || /\bcolspan\s*=/.test(attributes)
+        ? cell : `<td${attributes} data-label="${escapeHTML(label)}">`;
+    });
+  });
   return `
     <div class="panel table-wrap">
 
-      <table>
+      <table class="records-table" style="--table-min-width:${totalWidth}px">
+        <colgroup>${widths.map(width => `<col style="width:${width / totalWidth * 100}%">`).join('')}</colgroup>
 
         <thead>
 
@@ -1571,7 +1591,7 @@ function rowsTable(
         <tbody>
 
           ${
-            rows.join("") ||
+            labeledRows.join("") ||
             `
               <tr>
 
@@ -3320,7 +3340,7 @@ settings = () => `
 
 
   <div
-    class="panel"
+    class="panel master-config-panel"
     style="margin-top:20px"
   >
 
@@ -7007,22 +7027,9 @@ function exportOrders() {
 // DASHBOARD - SAME UI, REAL DB DATA
 // ============================================================
 
-dashboard = () => {
-  const active =
-    state.orders.filter(
-      o =>
-        o.status !==
-        "Delivered"
-    );
-
-  const due =
-    active.filter(
-      o =>
-        o.deliveryDate &&
-        o.deliveryDate <=
-        todayISO()
-    );
-
+function dashboardSummary() {
+  const active = state.orders.filter(o => o.status !== "Delivered");
+  const due = active.filter(o => o.deliveryDate && o.deliveryDate <= todayISO());
   return `
     <div class="grid stats">
 
@@ -7098,6 +7105,26 @@ dashboard = () => {
 
     </div>
 
+`;
+}
+
+dashboard = () => {
+  const active =
+    state.orders.filter(
+      o =>
+        o.status !==
+        "Delivered"
+    );
+
+  const due =
+    active.filter(
+      o =>
+        o.deliveryDate &&
+        o.deliveryDate <=
+        todayISO()
+    );
+
+  return `
     <div class="grid dashboard-main">
 
       <div class="panel">
@@ -7206,34 +7233,6 @@ dashboard = () => {
             }
 
           </div>
-
-        </div>
-
-        <div class="panel panel-body quick-actions">
-
-          ${action(
-            "+ New Order",
-            "new-order",
-            "",
-            "primary"
-          )}
-
-          ${action(
-            "+ Add Customer",
-            "add-customer"
-          )}
-
-          <button
-            class="outline"
-            data-view="production"
-          >
-            Production Board
-          </button>
-
-          ${action(
-            "+ Measurements",
-            "measurement-add"
-          )}
 
         </div>
 

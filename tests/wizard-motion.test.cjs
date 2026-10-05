@@ -1,0 +1,62 @@
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+let shell = null;
+let reducedMotion = false;
+const timers = [];
+function node() {
+  const classes = new Set();
+  return {dataset:{},classes,attributes:{},style:{setProperty(key,value){this[key]=value}},classList:{add(...names){names.forEach(name=>classes.add(name))},remove(...names){names.forEach(name=>classes.delete(name))}},setAttribute(key,value){this.attributes[key]=value},removeAttribute(key){delete this.attributes[key]},focus(){this.focused=true},addEventListener(){},querySelectorAll(){return []},remove(){this.removed=true}};
+}
+function buildShell() {
+  const result = node();
+  result.card = node();
+  result.heading = node();
+  result.card.offsetTop = 70;
+  result.card.querySelector = () => result.heading;
+  result.card.cloneNode = () => {
+    const ghost = node();
+    const id = node();
+    id.attributes.id = 'measurementInput';
+    ghost.querySelectorAll = () => [id];
+    ghost.oldInput = id;
+    return ghost;
+  };
+  result.steps = Array.from({length:7},node);
+  result.querySelector = () => result.card;
+  result.querySelectorAll = () => result.steps;
+  result.appendChild = child => {result.ghost=child};
+  return result;
+}
+const root = node();
+const toggle = node();
+const context = vm.createContext({console,Date,Math,String,Number,document:{documentElement:root,getElementById:()=>toggle,querySelector:()=>shell,addEventListener(){}},window:{matchMedia:()=>({matches:reducedMotion})},localStorage:{getItem(){},setItem(){}},setTimeout:fn=>timers.push(fn),state:{view:'wizard',wizardStep:0},dashboard:()=>'',render(){},renderWizard(){shell=buildShell();return 'rendered'}});
+vm.runInContext(fs.readFileSync('ui.js','utf8'),context);
+const run = code => vm.runInContext(code,context);
+assert.equal(run('renderWizard()'),'rendered');
+assert.equal(shell.dataset.wizardStep,'0');
+assert.ok(shell.card.classes.has('wizard-enter'),'initial entry animates');
+assert.ok(shell.heading.focused,'focus moves to step heading');
+run('renderWizard()');
+assert.ok(!shell.card.classes.has('wizard-enter'),'same-step edits do not animate');
+run('state.wizardStep=1;renderWizard()');
+assert.equal(shell.style['--wizard-direction'],'1');
+assert.ok(shell.steps[0].classes.has('just-completed'));
+assert.equal(shell.ghost.inert,true,'outgoing snapshot cannot receive input');
+assert.equal(shell.ghost.attributes['aria-hidden'],'true');
+assert.equal(shell.ghost.oldInput.attributes.id,undefined,'no duplicate input IDs');
+const forwardShell = shell;
+timers.splice(0).forEach(fn=>fn());
+assert.ok(forwardShell.ghost.removed,'outgoing snapshot cleaned up');
+assert.ok(!forwardShell.card.classes.has('wizard-enter'));
+run('state.wizardStep=0;renderWizard()');
+assert.equal(shell.style['--wizard-direction'],'-1','backward transition reverses');
+reducedMotion=true;
+run('state.wizardStep=1;renderWizard()');
+assert.ok(!shell.card.classes.has('wizard-enter'),'reduced motion respected');
+assert.equal(shell.ghost,undefined);
+assert.ok(shell.heading.focused);
+reducedMotion=false;
+run('state.wizardStep=7;renderWizard()');
+assert.ok(shell.card.classes.has('wizard-celebrate'),'success has completion motion');
+console.log('Passed: directional step transitions, unchanged-step stability, focus, inert snapshots, cleanup, reduced motion and success.');

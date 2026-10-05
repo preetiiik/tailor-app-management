@@ -10,7 +10,7 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-mark">M</div>
+        <div class="brand-mark" aria-hidden="true">✂</div>
         <div>
           <div class="brand-name">Tailor App</div>
           <div class="brand-sub">Tailor Management</div>
@@ -21,12 +21,12 @@
         <button class="nav-item active" data-view="dashboard"><span>⌂</span> Dashboard</button>
         <button class="nav-item" data-view="orders"><span>▣</span> Orders <span class="badge" id="ordersBadge">8</span></button>
         <button class="nav-item" data-view="customers"><span>♙</span> Customers</button>
+        <button class="nav-item" data-view="products"><span>◇</span> Products & Styles</button>
         <button class="nav-item" data-view="measurements"><span>↔</span> Measurements</button>
         <button class="nav-item" data-view="production"><span>◫</span> Production</button>
-        <button class="nav-item" data-view="products"><span>◇</span> Products & Styles</button>
-        <button class="nav-item" data-view="staff"><span>♟</span> Staff</button>
         <button class="nav-item" data-view="payments"><span>₹</span> Payments</button>
         <button class="nav-item" data-view="reports"><span>▥</span> Reports</button>
+        <button class="nav-item" data-view="staff"><span>♟</span> Staff</button>
         <button class="nav-item" data-view="settings"><span>⚙</span> Settings</button>
       </nav>
       <div class="sidebar-footer">
@@ -45,6 +45,7 @@
           <p id="pageSubtitle">Overview of today's tailoring operations</p>
         </div>
         <div class="top-actions">
+          <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark theme" title="Switch to dark theme">☾</button>
           <button class="icon-btn" title="Notifications" aria-label="Notifications" data-action="notifications">🔔<span class="dot"></span></button>
           <button class="outline" data-action="new-order">+ New Order</button>
         </div>
@@ -57,5 +58,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
   <script src="interactions.js"></script>
+  <script src="ui.js"></script>
 </body>
 </html>
