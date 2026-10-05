@@ -35,7 +35,7 @@ const todayISO = () => {
 };
 
 
-const stages = [
+let stages = [
   "Cutting",
   "Stitching",
   "Trial",
@@ -60,6 +60,8 @@ state.measurements = [];
 state.orders = [];
 
 state.patterns = [];
+
+state.masterConfig = {};
 
 state.orderDetails = {};
 
@@ -693,6 +695,91 @@ async function loadSettingsFromBackend(
   }
 }
 
+// ============================================================
+// LOAD MASTER CONFIG
+// ============================================================
+
+function masterOptions(
+  type,
+  fallback = []
+) {
+  const values =
+    state.masterConfig?.[type] || [];
+
+  return values.length
+    ? values.map(
+        item =>
+          item.config_value
+      )
+    : fallback;
+}
+
+
+async function loadMasterConfigFromBackend() {
+  try {
+    const data =
+      await apiRequest(
+        "/api/master-config"
+      );
+
+    state.masterConfig = {};
+
+    (data || [])
+      .filter(
+        item =>
+          item.active !== false
+      )
+      .sort(
+        (a, b) =>
+          Number(
+            a.display_order || 0
+          ) -
+          Number(
+            b.display_order || 0
+          )
+      )
+      .forEach(item => {
+
+        if (
+          !state.masterConfig[
+            item.config_type
+          ]
+        ) {
+          state.masterConfig[
+            item.config_type
+          ] = [];
+        }
+
+        state.masterConfig[
+          item.config_type
+        ].push(item);
+      });
+
+
+    stages =
+      masterOptions(
+        "order_status",
+        [
+          "Cutting",
+          "Stitching",
+          "Trial",
+          "Ready",
+          "Delivered"
+        ]
+      );
+
+    return state.masterConfig;
+
+  } catch (error) {
+
+    console.error(
+      "Master config load error:",
+      error
+    );
+
+    return state.masterConfig;
+  }
+}
 
 // ============================================================
 // LOAD PATTERNS
@@ -1838,12 +1925,15 @@ function staffDialog(id) {
         ${selectField(
           "Role",
           "role",
+          masterOptions(
+          "staff_role",
           [
             "Tailor",
             "Master Cutter",
             "Finishing",
             "Administrator"
-          ],
+          ]
+        ),
           s.role
         )}
 
@@ -3313,11 +3403,14 @@ stepSchedule = () => {
         ${selectField(
           "Priority",
           "priority",
+          masterOptions(
+          "priority",
           [
             "Normal",
             "Urgent",
             "VIP"
-          ],
+          ]
+        ),
           draft.priority,
           'data-bind="priority"'
         )}
@@ -3448,12 +3541,15 @@ stepPayment = () => {
         ${selectField(
           "Payment Method",
           "paymentMethod",
-          [
-            "UPI",
-            "Cash",
-            "Card",
-            "Bank Transfer"
-          ],
+          masterOptions(
+            "payment_method",
+            [
+              "UPI",
+              "Cash",
+              "Card",
+              "Bank Transfer"
+            ]
+          ),
           draft.paymentMethod,
           'data-bind="paymentMethod"'
         )}
@@ -6603,7 +6699,8 @@ async function initialiseApp() {
       loadProductsFromBackend(),
       loadStaffFromBackend(),
       loadSettingsFromBackend(),
-      loadPatternsFromBackend()
+      loadPatternsFromBackend(),
+      loadMasterConfigFromBackend(),
     ]);
 
     await Promise.all([
