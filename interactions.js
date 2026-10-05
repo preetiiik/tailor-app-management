@@ -2405,7 +2405,6 @@ orders = () => `
         ${
           [
             ...stages,
-            "Overdue"
           ].map(
             s =>
               `<option>${s}</option>`
@@ -2614,6 +2613,136 @@ production = () => `
 `;
 
 
+function masterConfigLabel(type) {
+  const labels = {
+    order_status: "Order Status",
+    priority: "Priority",
+    payment_method: "Payment Method",
+    staff_role: "Staff Role"
+  };
+
+  return labels[type] || type;
+}
+
+
+function masterConfigRows(type) {
+  const rows =
+    state.masterConfig?.[type] || [];
+
+  return rows.map(item => `
+    <tr data-record>
+
+      <td>
+        ${escapeHTML(item.config_value)}
+      </td>
+
+      <td>
+        ${escapeHTML(item.config_key)}
+      </td>
+
+      <td>
+        ${item.active ? "Active" : "Inactive"}
+      </td>
+
+      <td>
+        <div class="row-actions">
+
+          ${action(
+            "Edit",
+            "master-config-edit",
+            item.id
+          )}
+
+          ${action(
+            item.active
+              ? "Disable"
+              : "Enable",
+            "master-config-toggle",
+            item.id
+          )}
+
+        </div>
+      </td>
+
+    </tr>
+  `);
+}
+
+
+function masterConfigDialog(id = "") {
+  let item = null;
+
+  if (id) {
+    for (
+      const type in state.masterConfig
+    ) {
+      item =
+        state.masterConfig[type].find(
+          row =>
+            Number(row.id) ===
+            Number(id)
+        );
+
+      if (item) {
+        break;
+      }
+    }
+  }
+
+  dialog(
+    item
+      ? "Edit Master Config"
+      : "Add Master Config",
+
+    `
+      <div class="form-grid">
+
+        ${selectField(
+          "Config Type",
+          "config_type",
+          [
+            ["order_status", "Order Status"],
+            ["priority", "Priority"],
+            ["payment_method", "Payment Method"],
+            ["staff_role", "Staff Role"]
+          ],
+          item?.config_type || "",
+          "required"
+        )}
+
+        ${inputField(
+          "Display Value",
+          "config_value",
+          item?.config_value || "",
+          "text",
+          'required maxlength="100"'
+        )}
+
+        ${inputField(
+          "Config Key",
+          "config_key",
+          item?.config_key || "",
+          "text",
+          'required maxlength="100"'
+        )}
+
+        ${inputField(
+          "Display Order",
+          "display_order",
+          item?.display_order ?? 0,
+          "number",
+          'min="0" step="1"'
+        )}
+
+      </div>
+    `,
+
+    "master-config",
+    id
+  );
+}
+
+
 // ============================================================
 // SETTINGS UI - SAME AS BEFORE
 // ============================================================
@@ -2692,6 +2821,73 @@ settings = () => `
       </button>
 
     </form>
+
+  </div>
+
+
+  <div
+    class="panel"
+    style="margin-top:20px"
+  >
+
+    <div class="panel-head">
+
+      <div>
+
+        <div class="panel-title">
+          Master Config
+        </div>
+
+        <div class="small muted">
+          Manage dropdown values used across the software.
+        </div>
+
+      </div>
+
+      ${action(
+        "+ Add Config",
+        "master-config-add",
+        "",
+        "primary"
+      )}
+
+    </div>
+
+    <div class="panel-body">
+
+      ${[
+        "order_status",
+        "priority",
+        "payment_method",
+        "staff_role"
+      ].map(type => `
+
+        <div style="margin-bottom:24px">
+
+          <div
+            class="section-label"
+            style="margin-bottom:10px"
+          >
+            ${escapeHTML(
+              masterConfigLabel(type)
+            )}
+          </div>
+
+          ${rowsTable(
+            [
+              "Value",
+              "Key",
+              "Status",
+              "Actions"
+            ],
+            masterConfigRows(type)
+          )}
+
+        </div>
+
+      `).join("")}
+
+    </div>
 
   </div>
 `;
@@ -4797,6 +4993,90 @@ document.addEventListener(
 
 
     // ========================================================
+// MASTER CONFIG
+// ========================================================
+
+if (
+  kind ===
+  "master-config"
+) {
+  if (
+    !data.config_type ||
+    !data.config_key ||
+    !data.config_value
+  ) {
+    return formError(
+      form,
+      "Fill all required fields."
+    );
+  }
+
+  try {
+    await apiRequest(
+      id
+        ? `/api/master-config/${id}`
+        : "/api/master-config",
+      {
+        method:
+          id
+            ? "PUT"
+            : "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify({
+            config_type:
+              data.config_type,
+
+            config_key:
+              data.config_key
+                .toLowerCase()
+                .replace(
+                  /\s+/g,
+                  "_"
+                ),
+
+            config_value:
+              data.config_value,
+
+            display_order:
+              Number(
+                data.display_order ||
+                0
+              ),
+
+            active: true
+          })
+      }
+    );
+
+    await loadMasterConfigFromBackend();
+
+    closeDialog();
+
+    render();
+
+    toast(
+      id
+        ? "Master config updated."
+        : "Master config added."
+    );
+
+    return;
+
+  } catch (error) {
+    return formError(
+      form,
+      error.message
+    );
+  }
+}
+
+    // ========================================================
     // SETTINGS
     // ========================================================
 
@@ -5376,6 +5656,74 @@ document.addEventListener(
       button.dataset.action
     ) {
 
+      case "master-config-add":
+        return masterConfigDialog();
+
+
+      case "master-config-edit":
+        return masterConfigDialog(id);
+
+
+      case "master-config-toggle": {
+        let item = null;
+
+        for (
+          const type in state.masterConfig
+        ) {
+          item =
+            state.masterConfig[type].find(
+              row =>
+                Number(row.id) ===
+                Number(id)
+            );
+
+          if (item) {
+            break;
+          }
+        }
+
+        if (!item) {
+          return;
+        }
+
+        try {
+          await apiRequest(
+            `/api/master-config/${id}/status`,
+            {
+              method: "PATCH",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify({
+                  active:
+                    !item.active
+                })
+            }
+          );
+
+          await loadMasterConfigFromBackend();
+
+          render();
+
+          toast(
+            item.active
+              ? "Config disabled."
+              : "Config enabled."
+          );
+
+        } catch (error) {
+          toast(
+            error.message ||
+            "Could not update config."
+          );
+        }
+
+        return;
+      }
       case "wizard-measurement-source": {
         const draft = state.orderDraft;
         if (draft.measureMode === id || (id === "previous" && draft.measureMode !== "new")) return;
