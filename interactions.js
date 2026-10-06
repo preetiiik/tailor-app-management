@@ -58,6 +58,7 @@ state.products = [];
 state.staff = [];
 state.measurements = [];
 state.orders = [];
+state.payments = [];
 
 state.patterns = [];
 

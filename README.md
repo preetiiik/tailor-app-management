@@ -2,8 +2,9 @@
 
 ## Interface
 
-The app uses a blue and cyan 3D interface with rounded panels, layered shadows,
-and responsive layouts across all screens. The sun/moon button switches between
+The app uses a simple, flat interface with a navy, orange, and olive palette,
+subtle borders, and responsive layouts. Existing hover and wizard animations are
+preserved. The sun/moon button switches between
 light and dark themes and saves the preference in this browser. `ui.js` adds
 dashboard summaries using loaded orders: advance collections, outstanding
 balances, scheduled deliveries for the last six months, and production stages.

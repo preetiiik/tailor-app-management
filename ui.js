@@ -21,7 +21,7 @@
   dashboard = () => {
     const counts = stages.map(stage => state.orders.filter(order => order.status === stage).length);
     const total = counts.reduce((sum, count) => sum + count, 0);
-    const colors = ['#4e79b7', '#168ee2', '#04c4d8', '#32a9ad', '#233958'];
+    const colors = ['#718360', '#47758a', '#e9500b', '#7f985e', '#a7b2b8'];
     let offset = 0;
     const segments = counts.map((count, i) => {
       const start = offset;

@@ -11,7 +11,6 @@ for (const file of ['app.js','interactions.js','ui.js']) {
   vm.runInContext(fs.readFileSync(file,'utf8').replace(/initialiseApp\(\);\s*$/, ''),context,{filename:file});
 }
 const run = source => vm.runInContext(source,context);
-run('state.payments=[]'); // Backend supplies this collection after initial loading.
 for (const view of ['dashboard','orders','customers','measurements','production','products','staff','payments','reports','settings']) {
   run(`state.view='${view}';render()`);
   assert.ok(get('#content').innerHTML.length > 100, `${view} renders`);
